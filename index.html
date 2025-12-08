@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elice Emoji Picker</title>
+    <title>CXO Emoji Picker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
     <style>
+        /* [기존 디자인 스타일 유지] */
         :root {
             --bg-color: #ffffff;
             --text-color: #333333;
@@ -17,7 +18,7 @@
             --toast-text: #ffffff;
             --chip-bg: #e0e7ff;
             --chip-text: #1e40af;
-            --chip-hover: #c7d2fe;
+            --section-title-color: #6b7280;
         }
 
         [data-theme="dark"] {
@@ -30,7 +31,7 @@
             --toast-text: #111827;
             --chip-bg: #1e3a8a;
             --chip-text: #dbeafe;
-            --chip-hover: #1e40af;
+            --section-title-color: #9ca3af;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,267 +45,95 @@
             overflow-y: scroll;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            transition: padding 0.3s;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; transition: padding 0.3s; }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s;
-        }
-
-        .header-controls { display: flex; gap: 10px; }
-
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
         h1 { font-size: 1.25rem; font-weight: 700; }
+        .header-controls { display: flex; gap: 10px; }
         
         .icon-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 8px;
-            border-radius: 8px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
+            background: none; border: none; color: var(--text-color); cursor: pointer;
+            font-size: 1.1rem; padding: 8px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; transition: background 0.2s;
         }
         .icon-btn:hover { background-color: var(--hover-bg); }
 
-        .search-wrapper {
-            position: sticky;
-            top: 0;
-            background-color: var(--bg-color);
-            padding: 10px 0;
-            z-index: 20;
-            transition: padding 0.3s;
-        }
-
+        .search-wrapper { position: sticky; top: 0; background-color: var(--bg-color); padding: 10px 0; z-index: 20; transition: padding 0.3s; }
         .search-box { position: relative; width: 100%; }
-
         .search-box input {
-            width: 100%;
-            padding: 14px 20px 14px 44px;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            outline: none;
+            width: 100%; padding: 14px 20px 14px 44px; font-size: 1rem;
+            border: 2px solid var(--border-color); border-radius: 12px;
+            background-color: var(--bg-color); color: var(--text-color); outline: none;
             transition: border-color 0.2s;
         }
-
         .search-box input:focus { border-color: var(--accent-color); }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
         .shortcut-hint {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.8rem;
-            color: #9ca3af;
-            border: 1px solid var(--border-color);
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: var(--hover-bg);
-        }
-
-        .scenario-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-
-        .scenario-chip {
-            padding: 6px 12px;
-            border-radius: 20px;
-            background-color: var(--hover-bg);
-            color: var(--text-color);
-            font-size: 0.85rem;
-            cursor: pointer;
-            white-space: nowrap;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .scenario-chip:hover { background-color: var(--border-color); }
-        
-        .scenario-chip.active {
-            background-color: var(--chip-bg);
-            color: var(--chip-text);
-            border-color: var(--chip-bg);
-            font-weight: 600;
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            font-size: 0.8rem; color: #9ca3af; border: 1px solid var(--border-color);
+            padding: 2px 6px; border-radius: 4px; background-color: var(--hover-bg);
         }
 
         .favorites-bar {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 8px 0;
-            margin-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-            min-height: 45px;
-            align-items: center;
+            display: flex; gap: 12px; overflow-x: auto; padding: 8px 0;
+            margin-bottom: 16px; border-bottom: 1px solid var(--border-color);
+            min-height: 45px; align-items: center;
         }
-        
-        .fav-label {
-            font-size: 0.8rem;
-            color: #9ca3af;
-            white-space: nowrap;
-            margin-right: 8px;
-        }
-
-        .fav-item {
-            cursor: pointer;
-            font-size: 1.4rem;
-            transition: transform 0.1s;
-        }
+        .fav-label { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; margin-right: 8px; }
+        .fav-item { cursor: pointer; font-size: 1.4rem; transition: transform 0.1s; }
         .fav-item:hover { transform: scale(1.2); }
 
-        .tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
+        .emoji-section { margin-bottom: 32px; }
+        .section-title {
+            font-size: 0.9rem; font-weight: 700; color: var(--section-title-color);
+            margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+            display: flex; align-items: center;
         }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border-color); margin-left: 12px; }
 
-        .tab-btn {
-            padding: 10px 16px;
-            border: none;
-            background: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 0.95rem;
-            position: relative;
-            font-weight: 500;
-        }
-
-        .tab-btn:hover { color: var(--text-color); }
-        .tab-btn.active { color: var(--accent-color); }
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--accent-color);
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 8px;
-            padding-bottom: 40px;
-        }
-
-        .grid-container.kaomoji-mode {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; }
         .grid-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            aspect-ratio: 1;
-            font-size: 1.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            aspect-ratio: 1; font-size: 1.8rem; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.1s;
         }
-
         .grid-item:hover { background-color: var(--hover-bg); }
 
-        .kaomoji-mode .grid-item {
-            aspect-ratio: auto;
-            padding: 8px 14px;
-            font-size: 0.95rem;
-            background-color: var(--hover-bg);
-            border-radius: 6px;
-        }
-        .kaomoji-mode .grid-item:hover { background-color: var(--border-color); }
-
-        /* 미니 모드 스타일 */
+        /* 미니 모드 */
         body.mini-mode .container { padding: 10px; max-width: 100%; }
         body.mini-mode header { display: none; }
-        body.mini-mode .tabs { display: none; }
         body.mini-mode .favorites-bar { margin-bottom: 10px; padding: 4px 0; min-height: 30px; }
         body.mini-mode .fav-item { font-size: 1.2rem; }
         body.mini-mode .search-wrapper { padding: 5px 0 10px 0; }
         body.mini-mode .search-box input { padding: 8px 12px 8px 36px; font-size: 0.9rem; }
         body.mini-mode .search-icon { left: 12px; font-size: 0.8rem; }
         body.mini-mode .shortcut-hint { display: none; }
-        body.mini-mode .grid-container { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 4px; }
-        body.mini-mode .grid-item { font-size: 1.5rem; }
+        body.mini-mode .grid-container { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; }
+        body.mini-mode .grid-item { font-size: 1.4rem; }
         
         .mini-exit-btn {
-            display: none;
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 100;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            display: none; position: fixed; top: 10px; right: 10px; z-index: 100;
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 30px; height: 30px;
+            align-items: center; justify-content: center; cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         body.mini-mode .mini-exit-btn { display: flex; }
 
+        /* 토스트 및 로딩 */
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background-color: var(--toast-bg);
-            color: var(--toast-text);
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            opacity: 0;
-            transition: transform 0.3s, opacity 0.3s;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background-color: var(--toast-bg); color: var(--toast-text);
+            padding: 10px 20px; border-radius: 50px; font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0;
+            transition: transform 0.3s, opacity 0.3s; z-index: 1000;
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
         }
-
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         
-        .loading { text-align: center; padding: 40px; color: #9ca3af; }
-
+        .loading, .error-msg { text-align: center; padding: 40px; color: #9ca3af; }
+        
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
@@ -317,7 +146,7 @@
 
 <div class="container">
     <header>
-        <h1>CX Emoji Pro</h1>
+        <h1>Unicode Emoji Picker</h1>
         <div class="header-controls">
             <button class="icon-btn" id="miniModeToggle" title="미니 모드"><i class="fas fa-compress-alt"></i></button>
             <button class="icon-btn" id="themeToggle" title="테마 변경"><i class="fas fa-moon"></i></button>
@@ -327,26 +156,19 @@
     <div class="search-wrapper">
         <div class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" placeholder="검색 (예: 완료, 사과, 화살표)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="검색 (예: medal, face, hand...)" autocomplete="off">
             <span class="shortcut-hint">/</span>
         </div>
     </div>
-
-    <div class="scenario-container" id="scenarioContainer"></div>
 
     <div class="favorites-bar" id="favoritesContainer">
         <span class="fav-label"><i class="fas fa-star" style="color: #fbbf24; margin-right:4px;"></i>즐겨찾기</span>
     </div>
 
-    <div class="tabs" id="tabContainer">
-        <button class="tab-btn active" data-type="all">전체</button>
-        <button class="tab-btn" data-type="emoji">이모지</button>
-        <button class="tab-btn" data-type="kaomoji">이모티콘</button>
-        <button class="tab-btn" data-type="special">특수기호</button>
-    </div>
-
-    <div id="gridContainer" class="grid-container">
-        <div class="loading">데이터 로딩 중...</div>
+    <div id="mainContent">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> 데이터 로딩 중...
+        </div>
     </div>
 </div>
 
@@ -356,384 +178,152 @@
 </div>
 
 <script>
-    // --- 데이터 직접 정의 (미리보기용) ---
-    // 실제 운영 시에는 이 배열들을 외부 JSON에서 불러와도 됩니다.
-    
-    const EMBEDDED_EMOJIS = [
-        {emoji: "😀", description: "grinning face", category: "smileys", tags: ["smile", "happy"]},
-        {emoji: "😃", description: "grinning face with big eyes", category: "smileys", tags: ["happy", "joy"]},
-        {emoji: "😄", description: "grinning face with smiling eyes", category: "smileys", tags: ["happy", "smile"]},
-        {emoji: "😁", description: "beaming face with smiling eyes", category: "smileys", tags: ["smile"]},
-        {emoji: "😆", description: "grinning squinting face", category: "smileys", tags: ["happy", "laugh"]},
-        {emoji: "😅", description: "grinning face with sweat", category: "smileys", tags: ["hot", "sweat"]},
-        {emoji: "🤣", description: "rolling on the floor laughing", category: "smileys", tags: ["lol", "laugh"]},
-        {emoji: "😂", description: "face with tears of joy", category: "smileys", tags: ["tears", "cry", "laugh"]},
-        {emoji: "🙂", description: "slightly smiling face", category: "smileys", tags: ["smile"]},
-        {emoji: "🙃", description: "upside-down face", category: "smileys", tags: ["silly"]},
-        {emoji: "😉", description: "winking face", category: "smileys", tags: ["wink"]},
-        {emoji: "😊", description: "smiling face with smiling eyes", category: "smileys", tags: ["blush"]},
-        {emoji: "😇", description: "smiling face with halo", category: "smileys", tags: ["angel"]},
-        {emoji: "🥰", description: "smiling face with hearts", category: "smileys", tags: ["love"]},
-        {emoji: "😍", description: "smiling face with heart-eyes", category: "smileys", tags: ["love", "crush"]},
-        {emoji: "🤩", description: "star-struck", category: "smileys", tags: ["eyes"]},
-        {emoji: "😘", description: "face blowing a kiss", category: "smileys", tags: ["love", "kiss"]},
-        {emoji: "😗", description: "kissing face", category: "smileys", tags: ["kiss"]},
-        {emoji: "😚", description: "kissing face with closed eyes", category: "smileys", tags: ["kiss"]},
-        {emoji: "😙", description: "kissing face with smiling eyes", category: "smileys", tags: ["kiss"]},
-        {emoji: "😋", description: "face savoring food", category: "smileys", tags: ["yum", "tongue"]},
-        {emoji: "😛", description: "face with tongue", category: "smileys", tags: ["tongue"]},
-        {emoji: "😜", description: "winking face with tongue", category: "smileys", tags: ["wink", "tongue"]},
-        {emoji: "🤪", description: "zany face", category: "smileys", tags: ["silly"]},
-        {emoji: "😝", description: "squinting face with tongue", category: "smileys", tags: ["tongue"]},
-        {emoji: "🤑", description: "money-mouth face", category: "smileys", tags: ["rich"]},
-        {emoji: "🤗", description: "hugging face", category: "smileys", tags: ["hug"]},
-        {emoji: "🤭", description: "face with hand over mouth", category: "smileys", tags: ["oops"]},
-        {emoji: "🤫", description: "shushing face", category: "smileys", tags: ["quiet"]},
-        {emoji: "🤔", description: "thinking face", category: "smileys", tags: ["think"]},
-        {emoji: "🤐", description: "zipper-mouth face", category: "smileys", tags: ["silent"]},
-        {emoji: "🤨", description: "face with raised eyebrow", category: "smileys", tags: ["suspicious"]},
-        {emoji: "😐", description: "neutral face", category: "smileys", tags: ["meh"]},
-        {emoji: "😑", description: "expressionless face", category: "smileys", tags: ["meh"]},
-        {emoji: "😶", description: "face without mouth", category: "smileys", tags: ["silent"]},
-        {emoji: "😏", description: "smirking face", category: "smileys", tags: ["smirk"]},
-        {emoji: "😒", description: "unamused face", category: "smileys", tags: ["meh"]},
-        {emoji: "🙄", description: "face with rolling eyes", category: "smileys", tags: ["eyeroll"]},
-        {emoji: "😬", description: "grimacing face", category: "smileys", tags: ["awkward"]},
-        {emoji: "🤥", description: "lying face", category: "smileys", tags: ["liar"]},
-        {emoji: "😌", description: "relieved face", category: "smileys", tags: ["phew"]},
-        {emoji: "😔", description: "pensive face", category: "smileys", tags: ["sad"]},
-        {emoji: "😪", description: "sleepy face", category: "smileys", tags: ["tired"]},
-        {emoji: "🤤", description: "drooling face", category: "smileys", tags: ["yum"]},
-        {emoji: "😴", description: "sleeping face", category: "smileys", tags: ["sleep"]},
-        {emoji: "😷", description: "face with medical mask", category: "smileys", tags: ["sick"]},
-        {emoji: "🤒", description: "face with thermometer", category: "smileys", tags: ["sick"]},
-        {emoji: "🤕", description: "face with head-bandage", category: "smileys", tags: ["hurt"]},
-        {emoji: "🤢", description: "nauseated face", category: "smileys", tags: ["sick", "barf"]},
-        {emoji: "🤮", description: "face vomiting", category: "smileys", tags: ["sick", "barf"]},
-        {emoji: "🤧", description: "sneezing face", category: "smileys", tags: ["sick"]},
-        {emoji: "🥵", description: "hot face", category: "smileys", tags: ["hot"]},
-        {emoji: "🥶", description: "cold face", category: "smileys", tags: ["cold"]},
-        {emoji: "🥴", description: "woozy face", category: "smileys", tags: ["drunk"]},
-        {emoji: "😵", description: "dizzy face", category: "smileys", tags: ["dizzy"]},
-        {emoji: "🤯", description: "exploding head", category: "smileys", tags: ["mindblown"]},
-        {emoji: "🤠", description: "cowboy hat face", category: "smileys", tags: ["cowboy"]},
-        {emoji: "🥳", description: "partying face", category: "smileys", tags: ["party"]},
-        {emoji: "😎", description: "smiling face with sunglasses", category: "smileys", tags: ["cool"]},
-        {emoji: "🤓", description: "nerd face", category: "smileys", tags: ["nerd"]},
-        {emoji: "🧐", description: "face with monocle", category: "smileys", tags: ["classy"]},
-        {emoji: "😕", description: "confused face", category: "smileys", tags: ["huh"]},
-        {emoji: "😟", description: "worried face", category: "smileys", tags: ["nervous"]},
-        {emoji: "🙁", description: "slightly frowning face", category: "smileys", tags: ["sad"]},
-        {emoji: "😮", description: "face with open mouth", category: "smileys", tags: ["wow"]},
-        {emoji: "😯", description: "hushed face", category: "smileys", tags: ["silence"]},
-        {emoji: "😲", description: "astonished face", category: "smileys", tags: ["omg"]},
-        {emoji: "😳", description: "flushed face", category: "smileys", tags: ["blush"]},
-        {emoji: "🥺", description: "pleading face", category: "smileys", tags: ["please"]},
-        {emoji: "😦", description: "frowning face with open mouth", category: "smileys", tags: ["sad"]},
-        {emoji: "😧", description: "anguished face", category: "smileys", tags: ["sad"]},
-        {emoji: "😨", description: "fearful face", category: "smileys", tags: ["scared"]},
-        {emoji: "😰", description: "anxious face with sweat", category: "smileys", tags: ["nervous"]},
-        {emoji: "😥", description: "sad but relieved face", category: "smileys", tags: ["phew"]},
-        {emoji: "😢", description: "crying face", category: "smileys", tags: ["sad", "tear"]},
-        {emoji: "😭", description: "loudly crying face", category: "smileys", tags: ["sad", "cry"]},
-        {emoji: "😱", description: "face screaming in fear", category: "smileys", tags: ["scared", "omg"]},
-        {emoji: "😖", description: "confounded face", category: "smileys", tags: ["annoyed"]},
-        {emoji: "😣", description: "persevering face", category: "smileys", tags: ["struggle"]},
-        {emoji: "😞", description: "disappointed face", category: "smileys", tags: ["sad"]},
-        {emoji: "😓", description: "downcast face with sweat", category: "smileys", tags: ["nervous"]},
-        {emoji: "😩", description: "weary face", category: "smileys", tags: ["tired"]},
-        {emoji: "😫", description: "tired face", category: "smileys", tags: ["exhausted"]},
-        {emoji: "🥱", description: "yawning face", category: "smileys", tags: ["sleep"]},
-        {emoji: "😤", description: "face with steam from nose", category: "smileys", tags: ["angry"]},
-        {emoji: "😡", description: "pouting face", category: "smileys", tags: ["mad"]},
-        {emoji: "😠", description: "angry face", category: "smileys", tags: ["mad"]},
-        {emoji: "🤬", description: "face with symbols on mouth", category: "smileys", tags: ["swearing"]},
-        {emoji: "😈", description: "smiling face with horns", category: "smileys", tags: ["devil"]},
-        {emoji: "👿", description: "angry face with horns", category: "smileys", tags: ["devil"]},
-        {emoji: "💀", description: "skull", category: "smileys", tags: ["dead"]},
-        {emoji: "👋", description: "waving hand", category: "people", tags: ["hello", "bye"]},
-        {emoji: "🤚", description: "raised back of hand", category: "people", tags: ["stop"]},
-        {emoji: "🖐", description: "hand with fingers splayed", category: "people", tags: ["highfive"]},
-        {emoji: "✋", description: "raised hand", category: "people", tags: ["stop", "highfive"]},
-        {emoji: "🖖", description: "vulcan salute", category: "people", tags: ["prosper"]},
-        {emoji: "👌", description: "OK hand", category: "people", tags: ["perfect"]},
-        {emoji: "🤏", description: "pinching hand", category: "people", tags: ["small"]},
-        {emoji: "✌️", description: "victory hand", category: "people", tags: ["peace"]},
-        {emoji: "🤞", description: "crossed fingers", category: "people", tags: ["luck"]},
-        {emoji: "🤟", description: "love-you gesture", category: "people", tags: ["love"]},
-        {emoji: "🤘", description: "sign of the horns", category: "people", tags: ["rock"]},
-        {emoji: "🤙", description: "call me hand", category: "people", tags: ["phone"]},
-        {emoji: "👈", description: "backhand index pointing left", category: "people", tags: ["point"]},
-        {emoji: "👉", description: "backhand index pointing right", category: "people", tags: ["point"]},
-        {emoji: "👆", description: "backhand index pointing up", category: "people", tags: ["point"]},
-        {emoji: "👇", description: "backhand index pointing down", category: "people", tags: ["point"]},
-        {emoji: "👍", description: "thumbs up", category: "people", tags: ["approve"]},
-        {emoji: "👎", description: "thumbs down", category: "people", tags: ["disapprove"]},
-        {emoji: "👊", description: "oncoming fist", category: "people", tags: ["punch"]},
-        {emoji: "👏", description: "clapping hands", category: "people", tags: ["applause"]},
-        {emoji: "🙌", description: "raising hands", category: "people", tags: ["celebrate"]},
-        {emoji: "👐", description: "open hands", category: "people", tags: ["hug"]},
-        {emoji: "🤲", description: "palms up together", category: "people", tags: ["pray"]},
-        {emoji: "🤝", description: "handshake", category: "people", tags: ["deal"]},
-        {emoji: "🙏", description: "folded hands", category: "people", tags: ["please", "pray"]},
-        {emoji: "🙇‍♂️", description: "person bowing", category: "people", tags: ["sorry"]},
-        {emoji: "🙋‍♂️", description: "person raising hand", category: "people", tags: ["question"]},
-        {emoji: "🙆‍♂️", description: "person gesturing OK", category: "people", tags: ["ok"]},
-        {emoji: "🙅‍♂️", description: "person gesturing NO", category: "people", tags: ["no"]},
-        {emoji: "✅", description: "check mark button", category: "symbols", tags: ["check"]},
-        {emoji: "☑️", description: "check box with check", category: "symbols", tags: ["check"]},
-        {emoji: "✔️", description: "check mark", category: "symbols", tags: ["check"]},
-        {emoji: "❌", description: "cross mark", category: "symbols", tags: ["no"]},
-        {emoji: "❎", description: "cross mark button", category: "symbols", tags: ["no"]},
-        {emoji: "💯", description: "hundred points", category: "symbols", tags: ["perfect"]},
-        {emoji: "💢", description: "anger symbol", category: "symbols", tags: ["angry"]},
-        {emoji: "💥", description: "collision", category: "symbols", tags: ["boom"]},
-        {emoji: "💫", description: "dizzy", category: "symbols", tags: ["star"]},
-        {emoji: "💦", description: "sweat droplets", category: "symbols", tags: ["water"]},
-        {emoji: "💨", description: "dashing away", category: "symbols", tags: ["fast"]},
-        {emoji: "🕳", description: "hole", category: "symbols", tags: ["void"]},
-        {emoji: "💣", description: "bomb", category: "objects", tags: ["boom"]},
-        {emoji: "💬", description: "speech balloon", category: "symbols", tags: ["talk"]},
-        {emoji: "👁️‍🗨️", description: "eye in speech bubble", category: "symbols", tags: ["witness"]},
-        {emoji: "🗨️", description: "left speech bubble", category: "symbols", tags: ["talk"]},
-        {emoji: "🗯️", description: "right anger bubble", category: "symbols", tags: ["mad"]},
-        {emoji: "💭", description: "thought balloon", category: "symbols", tags: ["think"]},
-        {emoji: "💤", description: "zzz", category: "symbols", tags: ["sleep"]},
-        {emoji: "🎉", description: "party popper", category: "objects", tags: ["celebrate"]},
-        {emoji: "✨", description: "sparkles", category: "objects", tags: ["shiny"]},
-        {emoji: "⭐", description: "star", category: "objects", tags: ["shiny"]},
-        {emoji: "🐛", description: "bug", category: "animals", tags: ["error"]},
-        {emoji: "🔧", description: "wrench", category: "objects", tags: ["fix"]},
-        {emoji: "🚨", description: "police car light", category: "objects", tags: ["alert"]},
-        {emoji: "⚠️", description: "warning", category: "symbols", tags: ["alert"]},
-        {emoji: "🛑", description: "stop sign", category: "symbols", tags: ["stop"]},
-        {emoji: "📢", description: "loudspeaker", category: "objects", tags: ["announce"]},
-        {emoji: "💡", description: "light bulb", category: "objects", tags: ["idea"]},
-        {emoji: "📌", description: "pushpin", category: "objects", tags: ["pin"]},
-        {emoji: "📍", description: "round pushpin", category: "objects", tags: ["pin"]},
-        {emoji: "➡️", description: "right arrow", category: "symbols", tags: ["arrow"]},
-        {emoji: "👉", description: "backhand index pointing right", category: "people", tags: ["arrow"]},
-        {emoji: "👇", description: "backhand index pointing down", category: "people", tags: ["arrow"]},
-        {emoji: "⏩", description: "fast-forward button", category: "symbols", tags: ["arrow"]},
-        {emoji: "▶️", description: "play button", category: "symbols", tags: ["arrow"]},
-        {emoji: "🔜", description: "SOON arrow", category: "symbols", tags: ["arrow"]},
-        {emoji: "🔼", description: "up button", category: "symbols", tags: ["arrow"]},
-        {emoji: "🔽", description: "down button", category: "symbols", tags: ["arrow"]},
-        {emoji: "⭕", description: "hollow red circle", category: "symbols", tags: ["yes"]},
-        {emoji: "🚫", description: "prohibited", category: "symbols", tags: ["no"]},
-        {emoji: "📛", description: "name badge", category: "objects", tags: ["name"]},
-        {emoji: "💖", description: "sparkling heart", category: "symbols", tags: ["love"]},
-        {emoji: "👑", description: "crown", category: "objects", tags: ["king"]},
-        {emoji: "🎈", description: "balloon", category: "objects", tags: ["celebrate"]},
-        {emoji: "🔍", description: "magnifying glass left", category: "objects", tags: ["search"]},
-        {emoji: "🆗", description: "OK button", category: "symbols", tags: ["yes"]}
-    ];
-
-    const EMBEDDED_KAOMOJIS = [
-        {emoji: "( •̀ ω •́ )✧", description: "confident", tags: ["happy"]},
-        {emoji: "( ﾉ ﾟｰﾟ)ﾉ", description: "hooray", tags: ["party"]},
-        {emoji: "(*￣3￣)╭", description: "kiss", tags: ["love"]},
-        {emoji: "(u‿ฺu✿ฺ)", description: "peaceful", tags: ["sleep"]},
-        {emoji: "(✿◡‿◡)", description: "shy", tags: ["happy"]},
-        {emoji: "(*/ω＼*)", description: "embarrassed", tags: ["shy"]},
-        {emoji: "φ(゜▽゜*)♪", description: "writing", tags: ["study"]},
-        {emoji: "(≧∇≦)ﾉ", description: "excited", tags: ["happy"]},
-        {emoji: "╰(*°▽°*)╯", description: "joy", tags: ["happy"]},
-        {emoji: "( ´･･)ﾉ(._.`)", description: "comfort", tags: ["sad"]},
-        {emoji: "o(*￣▽￣*)ブ", description: "hello", tags: ["greet"]},
-        {emoji: "(┬┬﹏┬┬)", description: "crying", tags: ["sad"]},
-        {emoji: "ಠ_ಠ", description: "disapproval", tags: ["mad"]},
-        {emoji: "(╯°□°）╯︵ ┻━┻", description: "flip table", tags: ["angry"]},
-        {emoji: "┬─┬ノ( º _ ºノ)", description: "put table back", tags: ["calm"]},
-        {emoji: "¯\\_(ツ)_/¯", description: "shrug", tags: ["dunno"]},
-        {emoji: "(❤´艸｀❤)", description: "love", tags: ["love"]},
-        {emoji: "⏲_⏲", description: "waiting", tags: ["bored"]},
-        {emoji: "┗( T﹏T )┛", description: "surrender", tags: ["sad"]},
-        {emoji: "OwO", description: "owo", tags: ["cute"]},
-        {emoji: "UwU", description: "uwu", tags: ["cute"]},
-        {emoji: "(* ￣3)(ε￣ *)", description: "kissing", tags: ["love"]},
-        {emoji: "(～￣(OO)￣)ブ", description: "pig", tags: ["animal"]}
-    ];
-
-    const EMBEDDED_SPECIALS = [
-        {emoji: "→", description: "arrow right", tags: ["arrow"]},
-        {emoji: "←", description: "arrow left", tags: ["arrow"]},
-        {emoji: "↑", description: "arrow up", tags: ["arrow"]},
-        {emoji: "↓", description: "arrow down", tags: ["arrow"]},
-        {emoji: "★", description: "black star", tags: ["star"]},
-        {emoji: "☆", description: "white star", tags: ["star"]},
-        {emoji: "☎", description: "telephone", tags: ["phone"]},
-        {emoji: "☞", description: "finger pointing right", tags: ["point"]},
-        {emoji: "※", description: "reference mark", tags: ["note"]},
-        {emoji: "†", description: "dagger", tags: ["symbol"]},
-        {emoji: "‡", description: "double dagger", tags: ["symbol"]},
-        {emoji: "℃", description: "celsius", tags: ["unit"]},
-        {emoji: "℉", description: "fahrenheit", tags: ["unit"]},
-        {emoji: "™", description: "trademark", tags: ["symbol"]},
-        {emoji: "©", description: "copyright", tags: ["symbol"]},
-        {emoji: "®", description: "registered", tags: ["symbol"]},
-        {emoji: "✓", description: "check", tags: ["check"]},
-        {emoji: "✕", description: "cross", tags: ["no"]}
-    ];
-
-    const scenarios = [
-        { id: 'apology', label: '🙇‍♂️ 사과/오류', icon: 'fas fa-wrench', emojis: ['🙇‍♂️', '🙏', '😢', '💦', '🔧', '🚨', '⚠️', '🐛', '🔨'] },
-        { id: 'welcome', label: '🎉 환영/칭찬', icon: 'fas fa-party-horn', emojis: ['🎉', '🥳', '👋', '✨', '🎁', '🙌', '👏', '💖', '👑', '🎈'] },
-        { id: 'check', label: '✅ 확인/강조', icon: 'fas fa-check-double', emojis: ['✅', '👌', '📢', '💡', '📌', '➡️', '⭐', '✔️', '🆗', '🔍'] },
-        { id: 'yes', label: '⭕ 긍정/동의', icon: 'fas fa-thumbs-up', emojis: ['⭕', '🙆‍♂️', '👍', '🤝', '🆗', '🥰', '💖'] },
-        { id: 'no', label: '❌ 부정/거절', icon: 'fas fa-ban', emojis: ['❌', '🙅‍♂️', '👎', '✋', '🚫', '📛', '💢'] },
-        { id: 'arrow', label: '➡️ 화살표', icon: 'fas fa-arrow-right', emojis: ['➡️', '👉', '👇', '⏩', '▶️', '🔜', '🔼', '🔽'] }
-    ];
-
-    const keywordMapping = {
-        '✅': ['완료', '체크', '해결', '성공', 'v'],
-        '✔️': ['완료', '체크', 'v'],
-        '👌': ['오케이', '좋아', '가능', '확인', 'ok'],
-        '🙆‍♂️': ['오케이', '가능', '동의', '몸'],
-        '⭕': ['동그라미', '가능', '정답'],
-        '❌': ['엑스', '불가', '취소', '거절', '오류'],
-        '🚫': ['금지', '불가'],
-        '🐛': ['버그', '벌레', '오류', '에러', '고장'],
-        '🚨': ['사이렌', '긴급', '에러', '경고', '중요'],
-        '⚠️': ['주의', '경고', '위험'],
-        '🔧': ['수리', '고치는', '도구', '설정', '정비'],
-        '🙏': ['부탁', '제발', '감사', '기도', '죄송', '사과'],
-        '🙇‍♂️': ['사과', '절', '죄송', '부탁'],
-        '😢': ['눈물', '슬픔', '죄송', '울음'],
-        '💦': ['땀', '당황', '죄송'],
-        '🎉': ['축하', '파티', '폭죽', '환영'],
-        '🥳': ['파티', '축하', '행복'],
-        '👋': ['안녕', '인사', '손'],
-        '💡': ['팁', '아이디어', '전구', '알림', '참고'],
-        '📢': ['공지', '확성기', '알림', '소리'],
-        '📌': ['핀', '고정', '중요', '참고'],
-        '📍': ['위치', '핀'],
-        '⭐': ['별', '중요', '스타', '즐겨찾기'],
-        '✨': ['반짝', '새거', '강조'],
-        '👍': ['최고', '따봉', '좋아요', '굿'],
-        '👎': ['비추', '별로', '싫어요'],
-        '❤️': ['하트', '사랑', '좋아요'],
-        '✉️': ['메일', '편지', '연락'],
-        '📞': ['전화', '연락', '수화기']
+    // 카테고리 매핑 (한국어 변환용)
+    const CATEGORY_MAP = {
+        "Smileys & Emotion": "😀 표정 및 감정",
+        "People & Body": "👋 사람 및 신체",
+        "Animals & Nature": "🐶 동물 및 자연",
+        "Food & Drink": "🍔 음식 및 음료",
+        "Travel & Places": "✈️ 여행 및 장소",
+        "Activities": "⚽ 활동",
+        "Objects": "💡 사물",
+        "Symbols": "🔣 기호",
+        "Flags": "🚩 깃발",
+        "Component": "🏻 구성요소"
     };
 
+    let ALL_EMOJIS = [];
+    
     const state = {
-        allData: [],
-        filterTab: 'all',
-        activeScenario: null,
         searchTerm: '',
-        favorites: JSON.parse(localStorage.getItem('cx_emoji_favorites') || '[]'),
+        favorites: JSON.parse(localStorage.getItem('uni_favorites') || '[]'),
         isMiniMode: false
     };
 
-    const gridContainer = document.getElementById('gridContainer');
-    const searchInput = document.getElementById('searchInput');
-
     async function init() {
-        renderScenarios();
         renderFavorites();
         setupEventListeners();
         
-        // 미리보기용 데이터 통합
-        let data = [];
-        data.push(...EMBEDDED_EMOJIS.map(i => ({...i, type: 'emoji'})));
-        data.push(...EMBEDDED_KAOMOJIS.map(i => ({...i, type: 'kaomoji'})));
-        data.push(...EMBEDDED_SPECIALS.map(i => ({...i, type: 'special'})));
+        try {
+            // [중요] 생성한 JSON 파일 로드
+            const response = await fetch('emoji_data.json');
+            if(!response.ok) throw new Error("파일 로드 실패");
+            
+            ALL_EMOJIS = await response.json();
+            
+            // 데이터 로드 후 초기 렌더링
+            renderAllEmojis();
 
-        // 유의어 주입
-        state.allData = data.map(item => {
-            const keywords = keywordMapping[item.emoji] || [];
-            return { ...item, keywords };
-        });
+        } catch (error) {
+            console.error(error);
+            document.getElementById('mainContent').innerHTML = `
+                <div class="error-msg">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+                    <strong>데이터를 불러올 수 없습니다.</strong><br>
+                    <small>emoji_data.json 파일이 같은 폴더에 있는지 확인해주세요.<br>
+                    (브라우저 보안 정책으로 인해 로컬 파일 실행 시 Live Server가 필요할 수 있습니다.)</small>
+                </div>
+            `;
+        }
 
-        filterAndRender();
-
-        const savedTheme = localStorage.getItem('cx_emoji_theme');
+        const savedTheme = localStorage.getItem('uni_theme');
         if (savedTheme) applyTheme(savedTheme);
     }
 
-    // --- 렌더링 로직 (기존과 동일) ---
-    function renderScenarios() {
-        const container = document.getElementById('scenarioContainer');
-        container.innerHTML = '';
-        scenarios.forEach(sc => {
-            const btn = document.createElement('div');
-            btn.className = 'scenario-chip';
-            if (state.activeScenario === sc.id) btn.classList.add('active');
-            btn.innerHTML = `<span>${sc.label}</span>`;
-            btn.onclick = () => toggleScenario(sc.id);
-            container.appendChild(btn);
+    // 이름 정제 함수 (예: :1st_place_medal: -> 1st place medal)
+    function cleanName(name) {
+        if (!name) return "";
+        return name.replace(/:/g, '').replace(/_/g, ' ');
+    }
+
+    function renderAllEmojis() {
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = '';
+
+        // 카테고리별 그룹화
+        const grouped = {};
+        ALL_EMOJIS.forEach(item => {
+            const cat = item.category || '기타';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(item);
+        });
+
+        // 1. 정의된 카테고리 순서대로 렌더링
+        Object.keys(CATEGORY_MAP).forEach(key => {
+            if (grouped[key]) {
+                renderSection(mainContent, CATEGORY_MAP[key], grouped[key]);
+                delete grouped[key]; // 렌더링 후 삭제 (중복 방지)
+            }
+        });
+        
+        // 2. 남은(매핑되지 않은) 카테고리 렌더링
+        Object.keys(grouped).forEach(key => {
+            renderSection(mainContent, key, grouped[key]);
         });
     }
 
-    function filterAndRender() {
-        let result = state.allData;
-
-        if (state.activeScenario) {
-            const scenario = scenarios.find(s => s.id === state.activeScenario);
-            if (scenario) {
-                result = scenario.emojis.map(char => {
-                    const found = state.allData.find(d => d.emoji === char);
-                    return found || { emoji: char, type: 'emoji', description: 'Scenario Item' };
-                });
-            }
-        } else {
-            if (state.filterTab !== 'all') {
-                result = result.filter(item => item.type === state.filterTab);
-            }
-            if (state.searchTerm) {
-                const term = state.searchTerm.toLowerCase();
-                result = result.filter(item => {
-                    const desc = (item.description || '').toLowerCase();
-                    const tags = (item.tags || []).join(' ').toLowerCase();
-                    const keywords = (item.keywords || []).join(' ');
-                    return desc.includes(term) || tags.includes(term) || item.emoji.includes(term) || keywords.includes(term);
-                });
-            }
-        }
-        renderGridItems(result);
-    }
-
-    function renderGridItems(items) {
-        gridContainer.innerHTML = '';
-        const isKaomojiMode = state.filterTab === 'kaomoji' || (items.length > 0 && items[0].type === 'kaomoji');
+    function renderSection(container, title, items) {
+        const section = document.createElement('div');
+        section.className = 'emoji-section';
         
-        if (isKaomojiMode) gridContainer.classList.add('kaomoji-mode');
-        else gridContainer.classList.remove('kaomoji-mode');
+        const titleEl = document.createElement('div');
+        titleEl.className = 'section-title';
+        titleEl.textContent = title;
+        section.appendChild(titleEl);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-container';
 
         const fragment = document.createDocumentFragment();
-        const limit = state.searchTerm ? 1000 : 300;
-
-        items.slice(0, limit).forEach(item => {
+        items.forEach(item => {
             const div = document.createElement('div');
             div.className = 'grid-item';
             div.textContent = item.emoji;
+            // 툴팁: 정제된 이름 + 태그
+            const cleanDesc = cleanName(item.description);
+            const tagStr = item.tags ? item.tags.join(', ') : '';
+            div.title = `${cleanDesc}\n[Tags] ${tagStr}`;
+            
             div.onclick = () => copyToClipboard(item.emoji);
-            let tooltip = item.description || '';
-            if (item.keywords && item.keywords.length > 0) tooltip += ` (${item.keywords.join(', ')})`;
-            div.title = tooltip;
             fragment.appendChild(div);
         });
-
-        if (items.length === 0) gridContainer.innerHTML = '<div class="loading">검색 결과가 없습니다.</div>';
-        else gridContainer.appendChild(fragment);
+        grid.appendChild(fragment);
+        section.appendChild(grid);
+        container.appendChild(section);
     }
 
-    function toggleScenario(id) {
-        if (state.activeScenario === id) {
-            state.activeScenario = null;
-        } else {
-            state.activeScenario = id;
-            state.searchTerm = '';
-            searchInput.value = '';
+    function filterAndRender() {
+        const term = state.searchTerm.toLowerCase();
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = '';
+
+        if (!term) {
+            renderAllEmojis();
+            return;
         }
-        renderScenarios();
-        filterAndRender();
+
+        // 검색 로직: 설명(description), 태그(tags), 이모지 자체 매칭
+        const filtered = ALL_EMOJIS.filter(item => {
+            const desc = (item.description || '').toLowerCase();
+            const tags = (item.tags || []).join(' ').toLowerCase();
+            return desc.includes(term) || tags.includes(term) || item.emoji.includes(term);
+        });
+
+        if (filtered.length === 0) {
+            mainContent.innerHTML = '<div class="loading">검색 결과가 없습니다.</div>';
+            return;
+        }
+
+        renderSection(mainContent, `검색 결과 (${filtered.length}개)`, filtered);
     }
 
+    // 즐겨찾기 렌더링
     function renderFavorites() {
         const container = document.getElementById('favoritesContainer');
-        while (container.children.length > 1) container.removeChild(container.lastChild);
+        while (container.children.length > 1) {
+            container.removeChild(container.lastChild);
+        }
+
         state.favorites.forEach(emoji => {
             const span = document.createElement('span');
             span.className = 'fav-item';
@@ -749,6 +339,7 @@
             showToast(text);
             addToFavorites(text);
         } catch (err) {
+            // HTTPS가 아닌 경우 폴백
             const ta = document.createElement('textarea');
             ta.value = text;
             document.body.appendChild(ta);
@@ -772,9 +363,9 @@
     function addToFavorites(emoji) {
         let news = state.favorites.filter(e => e !== emoji);
         news.unshift(emoji);
-        if (news.length > 15) news.pop();
+        if (news.length > 20) news.pop();
         state.favorites = news;
-        localStorage.setItem('cx_emoji_favorites', JSON.stringify(news));
+        localStorage.setItem('uni_favorites', JSON.stringify(news));
         renderFavorites();
     }
 
@@ -794,32 +385,24 @@
     function setupEventListeners() {
         document.getElementById('miniModeToggle').addEventListener('click', toggleMiniMode);
         document.getElementById('exitMiniMode').addEventListener('click', toggleMiniMode);
+        
         document.getElementById('themeToggle').addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
             applyTheme(next);
-            localStorage.setItem('cx_emoji_theme', next);
+            localStorage.setItem('uni_theme', next);
         });
-        document.getElementById('tabContainer').addEventListener('click', (e) => {
-            if(e.target.classList.contains('tab-btn')) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                state.filterTab = e.target.dataset.type;
-                state.activeScenario = null;
-                renderScenarios();
-                filterAndRender();
-            }
-        });
+
         let debounce;
+        const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', (e) => {
             clearTimeout(debounce);
             debounce = setTimeout(() => {
                 state.searchTerm = e.target.value;
-                state.activeScenario = null;
-                renderScenarios();
                 filterAndRender();
             }, 200);
         });
+
         document.addEventListener('keydown', (e) => {
             if(e.key === '/' && document.activeElement !== searchInput) {
                 e.preventDefault();
