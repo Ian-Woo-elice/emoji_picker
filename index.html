@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CXO Emoji Picker</title>
+    <title>CXO Emoji Picker (Optimized)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
     <style>
-        /* [기존 디자인 스타일 유지] */
+        /* [기본 테마 설정] */
         :root {
             --bg-color: #ffffff;
             --text-color: #333333;
@@ -77,14 +77,37 @@
 
         .favorites-bar {
             display: flex; gap: 12px; overflow-x: auto; padding: 8px 0;
-            margin-bottom: 16px; border-bottom: 1px solid var(--border-color);
+            margin-bottom: 10px; border-bottom: 1px solid var(--border-color);
             min-height: 45px; align-items: center;
         }
         .fav-label { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; margin-right: 8px; }
         .fav-item { cursor: pointer; font-size: 1.4rem; transition: transform 0.1s; }
         .fav-item:hover { transform: scale(1.2); }
 
-        .emoji-section { margin-bottom: 32px; }
+        /* [추가] 카테고리 퀵 메뉴 스타일 */
+        .category-nav {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px;
+            white-space: nowrap; border-bottom: 1px solid var(--border-color);
+            scrollbar-width: none; /* Firefox 스크롤바 숨김 */
+        }
+        .category-nav::-webkit-scrollbar { display: none; /* Chrome 스크롤바 숨김 */ }
+        
+        .cat-btn {
+            padding: 6px 12px; border-radius: 20px; font-size: 0.9rem;
+            background: var(--hover-bg); border: 1px solid transparent; cursor: pointer;
+            transition: all 0.2s; color: var(--text-color);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .cat-btn:hover {
+            background: var(--chip-bg); color: var(--chip-text); border-color: var(--accent-color);
+        }
+
+        /* [성능 개선] content-visibility 적용 */
+        .emoji-section { 
+            margin-bottom: 32px; 
+            content-visibility: auto; /* 화면 밖 렌더링 스킵 */
+            contain-intrinsic-size: 1px 300px; /* 높이 추정값 */
+        }
         .section-title {
             font-size: 0.9rem; font-weight: 700; color: var(--section-title-color);
             margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -105,6 +128,7 @@
         body.mini-mode header { display: none; }
         body.mini-mode .favorites-bar { margin-bottom: 10px; padding: 4px 0; min-height: 30px; }
         body.mini-mode .fav-item { font-size: 1.2rem; }
+        body.mini-mode .category-nav { display: none; } /* 미니 모드에선 네비게이션 숨김 */
         body.mini-mode .search-wrapper { padding: 5px 0 10px 0; }
         body.mini-mode .search-box input { padding: 8px 12px 8px 36px; font-size: 0.9rem; }
         body.mini-mode .search-icon { left: 12px; font-size: 0.8rem; }
@@ -133,11 +157,6 @@
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         
         .loading, .error-msg { text-align: center; padding: 40px; color: #9ca3af; }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
     </style>
 </head>
 <body>
@@ -156,7 +175,7 @@
     <div class="search-wrapper">
         <div class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" placeholder="검색 (예: medal, face, hand...)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="검색 (예: 웃음, 사과, check...)" autocomplete="off">
             <span class="shortcut-hint">/</span>
         </div>
     </div>
@@ -164,6 +183,8 @@
     <div class="favorites-bar" id="favoritesContainer">
         <span class="fav-label"><i class="fas fa-star" style="color: #fbbf24; margin-right:4px;"></i>즐겨찾기</span>
     </div>
+
+    <div class="category-nav" id="categoryNav"></div>
 
     <div id="mainContent">
         <div class="loading">
@@ -178,18 +199,18 @@
 </div>
 
 <script>
-    // 카테고리 매핑 (한국어 변환용)
+    // 카테고리 매핑
     const CATEGORY_MAP = {
-        "Smileys & Emotion": "😀 표정 및 감정",
-        "People & Body": "👋 사람 및 신체",
-        "Animals & Nature": "🐶 동물 및 자연",
-        "Food & Drink": "🍔 음식 및 음료",
-        "Travel & Places": "✈️ 여행 및 장소",
+        "Smileys & Emotion": "😀 표정",
+        "People & Body": "👋 사람",
+        "Animals & Nature": "🐶 자연",
+        "Food & Drink": "🍔 음식",
+        "Travel & Places": "✈️ 여행",
         "Activities": "⚽ 활동",
         "Objects": "💡 사물",
         "Symbols": "🔣 기호",
         "Flags": "🚩 깃발",
-        "Component": "🏻 구성요소"
+        "Component": "🏻 요소"
     };
 
     let ALL_EMOJIS = [];
@@ -204,15 +225,31 @@
         renderFavorites();
         setupEventListeners();
         
+        const savedTheme = localStorage.getItem('uni_theme');
+        if (savedTheme) applyTheme(savedTheme);
+
         try {
-            // [중요] 생성한 JSON 파일 로드
-            const response = await fetch('emoji_data.json');
-            if(!response.ok) throw new Error("파일 로드 실패");
+            // [개선] 로컬 스토리지 캐시 확인 (네트워크 요청 최소화)
+            const cachedData = localStorage.getItem('emoji_data_cache');
             
-            ALL_EMOJIS = await response.json();
-            
-            // 데이터 로드 후 초기 렌더링
-            renderAllEmojis();
+            if (cachedData) {
+                // 캐시가 있으면 바로 사용
+                ALL_EMOJIS = JSON.parse(cachedData);
+                renderCategoryNav(); // 데이터 로드 후 네비게이션 생성
+                renderAllEmojis();
+            } else {
+                // 캐시가 없으면 fetch 실행
+                const response = await fetch('emoji_data.json');
+                if(!response.ok) throw new Error("파일 로드 실패");
+                
+                ALL_EMOJIS = await response.json();
+                
+                // 다음 방문을 위해 캐싱
+                localStorage.setItem('emoji_data_cache', JSON.stringify(ALL_EMOJIS));
+                
+                renderCategoryNav();
+                renderAllEmojis();
+            }
 
         } catch (error) {
             console.error(error);
@@ -220,27 +257,46 @@
                 <div class="error-msg">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
                     <strong>데이터를 불러올 수 없습니다.</strong><br>
-                    <small>emoji_data.json 파일이 같은 폴더에 있는지 확인해주세요.<br>
-                    (브라우저 보안 정책으로 인해 로컬 파일 실행 시 Live Server가 필요할 수 있습니다.)</small>
+                    <small>emoji_data.json 파일을 확인해주세요.</small>
                 </div>
             `;
         }
-
-        const savedTheme = localStorage.getItem('uni_theme');
-        if (savedTheme) applyTheme(savedTheme);
     }
 
-    // 이름 정제 함수 (예: :1st_place_medal: -> 1st place medal)
+    // 네비게이션 버튼 렌더링 함수
+    function renderCategoryNav() {
+        const nav = document.getElementById('categoryNav');
+        nav.innerHTML = '';
+        
+        Object.keys(CATEGORY_MAP).forEach(key => {
+            const displayName = CATEGORY_MAP[key];
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn';
+            btn.textContent = displayName;
+            btn.onclick = () => {
+                // 해당 섹션으로 스크롤 이동
+                const titles = document.querySelectorAll('.section-title');
+                for(let t of titles) {
+                    if(t.textContent.includes(displayName)) {
+                        t.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        break;
+                    }
+                }
+            };
+            nav.appendChild(btn);
+        });
+    }
+
     function cleanName(name) {
         if (!name) return "";
         return name.replace(/:/g, '').replace(/_/g, ' ');
     }
 
-    function renderAllEmojis() {
+    // [개선] 지연 렌더링 (Chunked Rendering) 적용
+    async function renderAllEmojis() {
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = '';
 
-        // 카테고리별 그룹화
         const grouped = {};
         ALL_EMOJIS.forEach(item => {
             const cat = item.category || '기타';
@@ -248,24 +304,28 @@
             grouped[cat].push(item);
         });
 
-        // 1. 정의된 카테고리 순서대로 렌더링
-        Object.keys(CATEGORY_MAP).forEach(key => {
-            if (grouped[key]) {
-                renderSection(mainContent, CATEGORY_MAP[key], grouped[key]);
-                delete grouped[key]; // 렌더링 후 삭제 (중복 방지)
-            }
-        });
+        // 정의된 카테고리 순서 + 나머지
+        const categories = Object.keys(CATEGORY_MAP).concat(
+            Object.keys(grouped).filter(k => !CATEGORY_MAP[k])
+        );
         
-        // 2. 남은(매핑되지 않은) 카테고리 렌더링
-        Object.keys(grouped).forEach(key => {
-            renderSection(mainContent, key, grouped[key]);
-        });
+        // 반복문을 돌면서 렌더링하되, 메인 스레드를 차단하지 않도록 대기
+        for (const key of categories) {
+            if (!grouped[key]) continue;
+
+            // UI 블로킹 방지를 위한 짧은 대기 (브라우저에게 렌더링 기회 제공)
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            
+            renderSection(mainContent, CATEGORY_MAP[key] || key, grouped[key]);
+        }
     }
 
+    // [개선] 이벤트 위임 및 innerHTML 사용으로 속도 향상
     function renderSection(container, title, items) {
         const section = document.createElement('div');
         section.className = 'emoji-section';
         
+        // 제목
         const titleEl = document.createElement('div');
         titleEl.className = 'section-title';
         titleEl.textContent = title;
@@ -274,20 +334,23 @@
         const grid = document.createElement('div');
         grid.className = 'grid-container';
 
-        const fragment = document.createDocumentFragment();
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'grid-item';
-            div.textContent = item.emoji;
-            // 툴팁: 정제된 이름 + 태그
+        // [중요] 이벤트 위임: 버튼마다 이벤트를 걸지 않고 부모에게 한 번만 걸기
+        grid.addEventListener('click', (e) => {
+            const target = e.target.closest('.grid-item');
+            if (target && target.dataset.emoji) {
+                copyToClipboard(target.dataset.emoji);
+            }
+        });
+
+        // [중요] innerHTML로 대량의 DOM을 한 번에 삽입 (createElement 반복보다 빠름)
+        const htmlBuffer = items.map(item => {
             const cleanDesc = cleanName(item.description);
             const tagStr = item.tags ? item.tags.join(', ') : '';
-            div.title = `${cleanDesc}\n[Tags] ${tagStr}`;
-            
-            div.onclick = () => copyToClipboard(item.emoji);
-            fragment.appendChild(div);
-        });
-        grid.appendChild(fragment);
+            // 데이터 속성(data-emoji)에 이모지 저장
+            return `<div class="grid-item" data-emoji="${item.emoji}" title="${cleanDesc}\n[Tags] ${tagStr}">${item.emoji}</div>`;
+        }).join('');
+
+        grid.innerHTML = htmlBuffer;
         section.appendChild(grid);
         container.appendChild(section);
     }
@@ -302,7 +365,6 @@
             return;
         }
 
-        // 검색 로직: 설명(description), 태그(tags), 이모지 자체 매칭
         const filtered = ALL_EMOJIS.filter(item => {
             const desc = (item.description || '').toLowerCase();
             const tags = (item.tags || []).join(' ').toLowerCase();
@@ -317,7 +379,6 @@
         renderSection(mainContent, `검색 결과 (${filtered.length}개)`, filtered);
     }
 
-    // 즐겨찾기 렌더링
     function renderFavorites() {
         const container = document.getElementById('favoritesContainer');
         while (container.children.length > 1) {
@@ -339,7 +400,6 @@
             showToast(text);
             addToFavorites(text);
         } catch (err) {
-            // HTTPS가 아닌 경우 폴백
             const ta = document.createElement('textarea');
             ta.value = text;
             document.body.appendChild(ta);
