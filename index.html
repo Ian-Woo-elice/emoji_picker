@@ -247,7 +247,7 @@
 
         } catch (error) {
             console.error("Data Load Error:", error);
-            document.getElementById('mainContent').innerHTML = "데이터 로딩 실패";
+            document.getElementById('mainContent').innerHTML = "데이터 로딩 실패 (Live Server로 실행해주세요)";
         }
     }
 
@@ -303,7 +303,9 @@
             
             const section = document.createElement('div');
             section.className = 'emoji-section';
-            section.id = 'sec-' + key.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            
+            // [수정 포인트 1] 한글 카테고리 ID가 지워지지 않도록 수정
+            section.id = 'sec-' + encodeURIComponent(key.replace(/\s+/g, '-'));
             
             // 이모지 탭이면 한글명 매핑, 아니면 원래 카테고리명 사용
             const title = (CURRENT_TAB === 'emoji' && EMOJI_CATS[key]) ? EMOJI_CATS[key] : key;
@@ -368,7 +370,8 @@
             btn.textContent = (CURRENT_TAB === 'emoji' && EMOJI_CATS[cat]) ? EMOJI_CATS[cat] : cat.split(' ')[0];
             
             btn.onclick = () => {
-                const targetId = 'sec-' + cat.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+                // [수정 포인트 2] 한글 카테고리 ID가 지워지지 않도록 수정
+                const targetId = 'sec-' + encodeURIComponent(cat.replace(/\s+/g, '-'));
                 const target = document.getElementById(targetId);
                 if(target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
             };
