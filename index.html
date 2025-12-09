@@ -112,9 +112,15 @@
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; }
         .grid-item {
             display: flex; align-items: center; justify-content: center;
-            aspect-ratio: 1; font-size: 1.8rem; border-radius: 8px;
+            aspect-ratio: 1; font-size: 1.5rem; /* 카오모지는 텍스트라 폰트 조금 작게 */
+            border-radius: 8px;
             cursor: pointer; transition: background-color 0.1s;
+            overflow: hidden; /* 긴 텍스트 잘림 방지용이나 줄바꿈 방지 */
+            white-space: nowrap;
         }
+        /* 카오모지는 글자가 길 수 있어서 그리드 너비를 좀 더 유동적으로 조정하면 좋지만, 
+           일관성을 위해 폰트 크기 조정으로 대응 */
+        
         .grid-item:hover { background-color: var(--hover-bg); }
 
         .favorites-bar {
@@ -146,6 +152,15 @@
             border-radius: 50%; width: 30px; height: 30px;
             align-items: center; justify-content: center; cursor: pointer;
         }
+        
+        /* 카오모지 전용 스타일 (그리드 아이템을 좀 더 넓게) */
+        .kaomoji-mode .grid-container {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 너비 확보 */
+        }
+        .kaomoji-mode .grid-item {
+            font-size: 1rem; /* 텍스트 크기 조정 */
+            aspect-ratio: 2/1; /* 가로로 길게 */
+        }
     </style>
 </head>
 <body>
@@ -164,6 +179,7 @@
     <div class="tabs-container">
         <button class="tab-btn active" onclick="switchTab('emoji')">😀 이모지</button>
         <button class="tab-btn" onclick="switchTab('symbol')">🔣 특수문자</button>
+        <button class="tab-btn" onclick="switchTab('kaomoji')">^_^ 카오모지</button>
     </div>
 
     <div class="search-wrapper">
@@ -188,8 +204,7 @@
 
 <script src="emoji_data.js"></script>
 <script src="special_symbols.js"></script>
-
-<script>
+<script src="kaomoji_data.js"></script> <script>
     const EMOJI_CATS = {
         "Smileys & Emotion": "😀 표정", "People & Body": "👋 사람",
         "Animals & Nature": "🐶 자연", "Food & Drink": "🍔 음식",
@@ -199,7 +214,8 @@
 
     let DATA_STORE = {
         emoji: [],
-        symbol: []
+        symbol: [],
+        kaomoji: [] // 추가됨
     };
 
     let CURRENT_TAB = 'emoji'; 
@@ -229,14 +245,14 @@
         const savedTheme = localStorage.getItem('uni_theme');
         if (savedTheme) applyTheme(savedTheme);
 
-        // [핵심 수정] fetch를 삭제하고 전역 변수에서 데이터를 가져옵니다.
         try {
             if (window.EMOJI_DATA) DATA_STORE.emoji = window.EMOJI_DATA;
             if (window.SYMBOL_DATA) DATA_STORE.symbol = window.SYMBOL_DATA;
+            if (window.KAOMOJI_DATA) DATA_STORE.kaomoji = window.KAOMOJI_DATA; // 데이터 로드
 
-            // 데이터가 없으면 에러 표시
-            if (!DATA_STORE.emoji.length && !DATA_STORE.symbol.length) {
-                throw new Error("데이터 파일(emoji_data.js, special_symbols.js)이 로드되지 않았습니다.");
+            // 데이터가 없으면 에러
+            if (!DATA_STORE.emoji.length && !DATA_STORE.symbol.length && !DATA_STORE.kaomoji.length) {
+                throw new Error("데이터 파일이 로드되지 않았습니다.");
             }
 
             switchTab('emoji'); 
@@ -244,7 +260,7 @@
         } catch (error) {
             console.error("Data Load Error:", error);
             document.getElementById('mainContent').innerHTML = 
-                '<div class="loading-text" style="color:red;">데이터 로딩 실패.<br>파일명이 .js 인지, 코드가 올바른지 확인해주세요.</div>';
+                '<div class="loading-text" style="color:red;">데이터 로딩 실패.<br>js 파일들이 같은 폴더에 있는지 확인해주세요.</div>';
         }
     }
 
@@ -257,11 +273,26 @@
         state.searchTerm = '';
         document.getElementById('searchInput').value = '';
 
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        const btnIdx = tabName === 'emoji' ? 0 : 1;
-        document.querySelectorAll('.tab-btn')[btnIdx].classList.add('active');
+        // 탭 버튼 스타일 업데이트
+        const tabs = ['emoji', 'symbol', 'kaomoji'];
+        document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+            if (tabs[idx] === tabName) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
 
-        const placeholder = tabName === 'emoji' ? '이모지 검색 (예: 웃음, 사과...)' : '특수문자 검색 (예: 별, 화살표, 네모...)';
+        // 카오모지 모드일 때 CSS 클래스 추가 (그리드 스타일 변경용)
+        if (tabName === 'kaomoji') {
+            document.body.classList.add('kaomoji-mode');
+        } else {
+            document.body.classList.remove('kaomoji-mode');
+        }
+
+        // 플레이스홀더 변경
+        let placeholder = '검색...';
+        if (tabName === 'emoji') placeholder = '이모지 검색 (예: 웃음, 사과...)';
+        else if (tabName === 'symbol') placeholder = '특수문자 검색 (예: 별, 화살표, 괄호...)';
+        else if (tabName === 'kaomoji') placeholder = '카오모지 검색 (예: 기쁨, 눈물, 곰...)';
+        
         document.getElementById('searchInput').placeholder = placeholder;
 
         renderCategoryNav();
@@ -286,6 +317,7 @@
             grouped[cat].push(item);
         });
 
+        // 카테고리 순서
         let categories;
         if (CURRENT_TAB === 'emoji') {
             categories = Object.keys(EMOJI_CATS).concat(
@@ -301,7 +333,7 @@
             const section = document.createElement('div');
             section.className = 'emoji-section';
             
-            // 한글 카테고리 이름 깨짐 방지
+            // 한글 카테고리 ID 처리
             section.id = 'sec-' + encodeURIComponent(key.replace(/\s+/g, '-'));
             
             const title = (CURRENT_TAB === 'emoji' && EMOJI_CATS[key]) ? EMOJI_CATS[key] : key;
