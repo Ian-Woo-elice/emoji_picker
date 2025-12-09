@@ -1,3 +1,4 @@
+window.EMOJI_DATA =
 [
   {
     "emoji": "😀",
@@ -17407,4 +17408,6 @@
       "wales"
     ]
   }
+
 ]
+;
