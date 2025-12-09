@@ -18,6 +18,8 @@
             --chip-bg: #e0e7ff;
             --chip-text: #1e40af;
             --section-title-color: #6b7280;
+            --tab-inactive-bg: #f9fafb;
+            --tab-inactive-text: #6b7280;
         }
 
         [data-theme="dark"] {
@@ -31,6 +33,8 @@
             --chip-bg: #1e3a8a;
             --chip-text: #dbeafe;
             --section-title-color: #9ca3af;
+            --tab-inactive-bg: #1f2937;
+            --tab-inactive-text: #9ca3af;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,23 +45,10 @@
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
             line-height: 1.5;
-            overflow-y: scroll; /* 스크롤바 항상 표시 */
+            overflow-y: scroll;
         }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; transition: padding 0.3s; min-height: 100vh; }
-
-        /* [변경] 로딩 오버레이 스타일 추가 */
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
-            z-index: 9999;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            transition: opacity 0.4s ease-out;
-        }
-        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-        .loading-spinner { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 20px; }
-        .loading-text { font-size: 1.1rem; font-weight: 500; color: var(--section-title-color); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; min-height: 100vh; }
 
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
         h1 { font-size: 1.25rem; font-weight: 700; }
@@ -66,31 +57,37 @@
         .icon-btn {
             background: none; border: none; color: var(--text-color); cursor: pointer;
             font-size: 1.1rem; padding: 8px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
             width: 36px; height: 36px; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center;
         }
         .icon-btn:hover { background-color: var(--hover-bg); }
 
-        .search-wrapper { position: sticky; top: 0; background-color: var(--bg-color); padding: 10px 0; z-index: 20; transition: padding 0.3s; }
+        /* [핵심] 탭 스타일 */
+        .tabs-container {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; font-size: 1rem; font-weight: 700;
+            border: 2px solid transparent; border-radius: 12px;
+            background-color: var(--tab-inactive-bg); color: var(--tab-inactive-text);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--chip-bg); color: var(--chip-text);
+            border-color: var(--accent-color);
+        }
+        .tab-btn:hover:not(.active) { background-color: var(--hover-bg); }
+
+        .search-wrapper { position: sticky; top: 0; background-color: var(--bg-color); padding: 10px 0; z-index: 20; }
         .search-box { position: relative; width: 100%; }
         .search-box input {
             width: 100%; padding: 14px 20px 14px 44px; font-size: 1rem;
             border: 2px solid var(--border-color); border-radius: 12px;
             background-color: var(--bg-color); color: var(--text-color); outline: none;
-            transition: border-color 0.2s;
         }
         .search-box input:focus { border-color: var(--accent-color); }
         .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
         
-        .favorites-bar {
-            display: flex; gap: 12px; overflow-x: auto; padding: 8px 0;
-            margin-bottom: 10px; border-bottom: 1px solid var(--border-color);
-            min-height: 45px; align-items: center;
-        }
-        .fav-label { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; margin-right: 8px; }
-        .fav-item { cursor: pointer; font-size: 1.4rem; transition: transform 0.1s; }
-        .fav-item:hover { transform: scale(1.2); }
-
         .category-nav {
             display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px;
             white-space: nowrap; border-bottom: 1px solid var(--border-color);
@@ -105,12 +102,7 @@
         }
         .cat-btn:hover { background: var(--chip-bg); color: var(--chip-text); border-color: var(--accent-color); }
 
-        /* [변경] content-visibility 제거 (스크롤 렌더링 지연 방지) */
-        .emoji-section { 
-            margin-bottom: 32px; 
-            /* content-visibility: auto;  <-- 이 속성을 제거하여 항상 렌더링 상태 유지 */
-        }
-        
+        .emoji-section { margin-bottom: 32px; min-height: 100px; }
         .section-title {
             font-size: 0.9rem; font-weight: 700; color: var(--section-title-color);
             margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -126,23 +118,15 @@
         }
         .grid-item:hover { background-color: var(--hover-bg); }
 
-        /* 미니 모드 스타일 */
-        body.mini-mode .container { padding: 10px; max-width: 100%; }
-        body.mini-mode header { display: none; }
-        body.mini-mode .favorites-bar { margin-bottom: 10px; padding: 4px 0; min-height: 30px; }
-        body.mini-mode .fav-item { font-size: 1.2rem; }
-        body.mini-mode .category-nav { display: none; }
-        body.mini-mode .search-wrapper { padding: 5px 0 10px 0; }
-        body.mini-mode .grid-container { grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; }
-        
-        .mini-exit-btn {
-            display: none; position: fixed; top: 10px; right: 10px; z-index: 100;
-            background: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 50%; width: 30px; height: 30px;
-            align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* 즐겨찾기 바 */
+        .favorites-bar {
+            display: flex; gap: 12px; overflow-x: auto; padding: 8px 0;
+            margin-bottom: 10px; border-bottom: 1px solid var(--border-color);
+            min-height: 45px; align-items: center;
         }
-        body.mini-mode .mini-exit-btn { display: flex; }
+        .fav-label { font-size: 0.8rem; color: #9ca3af; white-space: nowrap; margin-right: 8px; }
+        .fav-item { cursor: pointer; font-size: 1.4rem; transition: transform 0.1s; }
+        .fav-item:hover { transform: scale(1.2); }
 
         .toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
@@ -150,17 +134,24 @@
             padding: 10px 20px; border-radius: 50px; font-size: 0.9rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0;
             transition: transform 0.3s, opacity 0.3s; z-index: 1000;
-            display: flex; align-items: center; gap: 8px; white-space: nowrap;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        .loading-text { text-align: center; color: #9ca3af; padding: 20px; }
+        
+        /* 미니 모드 */
+        body.mini-mode .container { padding: 10px; max-width: 100%; }
+        body.mini-mode header, body.mini-mode .tabs-container { display: none; } /* 탭도 미니모드에선 숨김 */
+        body.mini-mode .mini-exit-btn { display: flex; }
+        .mini-exit-btn {
+            display: none; position: fixed; top: 10px; right: 10px; z-index: 100;
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 30px; height: 30px;
+            align-items: center; justify-content: center; cursor: pointer;
+        }
     </style>
 </head>
 <body>
-
-<div id="loadingOverlay" class="loading-overlay">
-    <i class="fas fa-spinner fa-spin loading-spinner"></i>
-    <div class="loading-text">이모지 불러오는 중...</div>
-</div>
 
 <button class="mini-exit-btn" id="exitMiniMode" title="미니 모드 종료"><i class="fas fa-expand-alt"></i></button>
 
@@ -173,10 +164,15 @@
         </div>
     </header>
 
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('emoji')">😀 이모지</button>
+        <button class="tab-btn" onclick="switchTab('symbol')">🔣 특수문자</button>
+    </div>
+
     <div class="search-wrapper">
         <div class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" placeholder="검색 (예: 웃음, 사과, check...)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="검색..." autocomplete="off">
         </div>
     </div>
 
@@ -186,34 +182,48 @@
 
     <div class="category-nav" id="categoryNav"></div>
 
-    <div id="mainContent" style="opacity: 0; transition: opacity 0.3s;"></div>
+    <div id="mainContent">
+        <div class="loading-text">데이터 로딩 중...</div>
+    </div>
 </div>
 
-<div id="toast" class="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage">복사 완료!</span>
-</div>
+<div id="toast" class="toast"><span id="toastMessage">복사 완료!</span></div>
 
 <script>
-    const CATEGORY_MAP = {
-        "Smileys & Emotion": "😀 표정",
-        "People & Body": "👋 사람",
-        "Animals & Nature": "🐶 자연",
-        "Food & Drink": "🍔 음식",
-        "Travel & Places": "✈️ 여행",
-        "Activities": "⚽ 활동",
-        "Objects": "💡 사물",
-        "Symbols": "🔣 기호",
-        "Flags": "🚩 깃발",
-        "Component": "🏻 요소"
+    // 이모지 카테고리
+    const EMOJI_CATS = {
+        "Smileys & Emotion": "😀 표정", "People & Body": "👋 사람",
+        "Animals & Nature": "🐶 자연", "Food & Drink": "🍔 음식",
+        "Travel & Places": "✈️ 여행", "Activities": "⚽ 활동",
+        "Objects": "💡 사물", "Symbols": "🔣 기호", "Flags": "🚩 깃발"
+    };
+    // 특수문자 카테고리는 데이터에 포함된 이름 그대로 사용하거나 여기서 매핑 가능
+
+    let DATA_STORE = {
+        emoji: [],
+        symbol: []
     };
 
-    let ALL_EMOJIS = [];
+    let CURRENT_TAB = 'emoji'; // 'emoji' or 'symbol'
+    
     const state = {
         searchTerm: '',
         favorites: JSON.parse(localStorage.getItem('uni_favorites') || '[]'),
         isMiniMode: false
     };
+
+    // [성능] Intersection Observer
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+                const items = JSON.parse(target.dataset.items);
+                const title = target.dataset.title;
+                renderSectionContent(target, title, items);
+                observer.unobserve(target);
+            }
+        });
+    }, { rootMargin: "300px 0px" });
 
     async function init() {
         renderFavorites();
@@ -222,100 +232,99 @@
         const savedTheme = localStorage.getItem('uni_theme');
         if (savedTheme) applyTheme(savedTheme);
 
+        // [핵심] 두 개의 파일을 병렬 로딩
         try {
-            const cachedData = localStorage.getItem('emoji_data_cache');
-            if (cachedData) {
-                ALL_EMOJIS = JSON.parse(cachedData);
-            } else {
-                const response = await fetch('emoji_data.json');
-                if(!response.ok) throw new Error("파일 로드 실패");
-                ALL_EMOJIS = await response.json();
-                localStorage.setItem('emoji_data_cache', JSON.stringify(ALL_EMOJIS));
-            }
+            const [emojiRes, symbolRes] = await Promise.allSettled([
+                fetch('emoji_data.json'),
+                fetch('special_symbols.json')
+            ]);
 
-            renderCategoryNav();
-            // 데이터 로드가 끝나면 렌더링 시작
-            renderAllEmojis();
+            if (emojiRes.status === 'fulfilled') DATA_STORE.emoji = await emojiRes.value.json();
+            if (symbolRes.status === 'fulfilled') DATA_STORE.symbol = await symbolRes.value.json();
+
+            // 로딩 완료 후 렌더링
+            switchTab('emoji'); 
 
         } catch (error) {
-            console.error(error);
-            document.getElementById('loadingOverlay').innerHTML = `<div class="error-msg">데이터 로드 실패</div>`;
+            console.error("Data Load Error:", error);
+            document.getElementById('mainContent').innerHTML = "데이터 로딩 실패";
         }
     }
 
-    function renderCategoryNav() {
-        const nav = document.getElementById('categoryNav');
-        nav.innerHTML = '';
-        Object.keys(CATEGORY_MAP).forEach(key => {
-            const displayName = CATEGORY_MAP[key];
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.textContent = displayName;
-            btn.onclick = () => {
-                const titles = document.querySelectorAll('.section-title');
-                for(let t of titles) {
-                    if(t.textContent.includes(displayName)) {
-                        t.scrollIntoView({behavior: 'smooth', block: 'start'});
-                        break;
-                    }
-                }
-            };
-            nav.appendChild(btn);
-        });
+    // [핵심] 탭 전환 함수
+    function switchTab(tabName) {
+        CURRENT_TAB = tabName;
+        state.searchTerm = '';
+        document.getElementById('searchInput').value = '';
+
+        // 버튼 스타일 업데이트
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const btnIdx = tabName === 'emoji' ? 0 : 1;
+        document.querySelectorAll('.tab-btn')[btnIdx].classList.add('active');
+
+        // 플레이스홀더 변경
+        const placeholder = tabName === 'emoji' ? '이모지 검색 (예: 웃음, 사과...)' : '특수문자 검색 (예: 별, 화살표, 네모...)';
+        document.getElementById('searchInput').placeholder = placeholder;
+
+        renderCategoryNav();
+        prepareList();
     }
 
-    function cleanName(name) {
-        if (!name) return "";
-        return name.replace(/:/g, '').replace(/_/g, ' ');
-    }
-
-    // [핵심 변경] 로딩 화면 뒤에서 모든 요소를 다 그린 후 한 번에 보여줌
-    async function renderAllEmojis() {
+    function prepareList() {
         const mainContent = document.getElementById('mainContent');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        
         mainContent.innerHTML = '';
+        observer.disconnect(); // 기존 관찰 중단
+
+        const data = DATA_STORE[CURRENT_TAB];
+        if (!data || data.length === 0) {
+            mainContent.innerHTML = '<div class="loading-text">데이터가 없거나 로딩 중입니다.</div>';
+            return;
+        }
 
         const grouped = {};
-        ALL_EMOJIS.forEach(item => {
+        data.forEach(item => {
             const cat = item.category || '기타';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(item);
         });
 
-        const categories = Object.keys(CATEGORY_MAP).concat(
-            Object.keys(grouped).filter(k => !CATEGORY_MAP[k])
-        );
-        
-        // requestAnimationFrame을 사용하여 브라우저가 '로딩 중' 아이콘을 돌릴 수 있게 해줌
-        for (const key of categories) {
-            if (!grouped[key]) continue;
-            // 프레임 단위로 나누어 그리기 (화면 멈춤 방지)
-            await new Promise(resolve => requestAnimationFrame(resolve));
-            renderSection(mainContent, CATEGORY_MAP[key] || key, grouped[key]);
+        // 카테고리 정렬: 이모지는 정의된 순서대로, 특수문자는 그냥 나오는 대로
+        let categories;
+        if (CURRENT_TAB === 'emoji') {
+            categories = Object.keys(EMOJI_CATS).concat(
+                Object.keys(grouped).filter(k => !EMOJI_CATS[k])
+            );
+        } else {
+            categories = Object.keys(grouped);
         }
 
-        // [완료] 모든 렌더링이 끝나면 로딩 화면 제거 및 컨텐츠 표시
-        mainContent.style.opacity = '1';
-        loadingOverlay.classList.add('hidden');
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-        }, 400);
+        categories.forEach(key => {
+            if (!grouped[key]) return;
+            
+            const section = document.createElement('div');
+            section.className = 'emoji-section';
+            section.id = 'sec-' + key.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            
+            // 이모지 탭이면 한글명 매핑, 아니면 원래 카테고리명 사용
+            const title = (CURRENT_TAB === 'emoji' && EMOJI_CATS[key]) ? EMOJI_CATS[key] : key;
+            
+            section.dataset.title = title;
+            section.dataset.items = JSON.stringify(grouped[key]);
+            
+            mainContent.appendChild(section);
+            observer.observe(section);
+        });
     }
 
-    function renderSection(container, title, items) {
-        const section = document.createElement('div');
-        section.className = 'emoji-section';
-        
+    function renderSectionContent(container, title, items) {
         const titleEl = document.createElement('div');
         titleEl.className = 'section-title';
         titleEl.textContent = title;
-        section.appendChild(titleEl);
+        container.appendChild(titleEl);
 
         const grid = document.createElement('div');
         grid.className = 'grid-container';
 
-        // 이벤트 위임
         grid.addEventListener('click', (e) => {
             const target = e.target.closest('.grid-item');
             if (target && target.dataset.emoji) {
@@ -323,32 +332,63 @@
             }
         });
 
-        // HTML 문자열 조합 (가장 빠른 렌더링 방식)
-        const htmlBuffer = items.map(item => {
-            const cleanDesc = cleanName(item.description);
+        const html = items.map(item => {
+            const desc = item.description || '';
             const tagStr = item.tags ? item.tags.join(', ') : '';
-            return `<div class="grid-item" data-emoji="${item.emoji}" title="${cleanDesc} ${tagStr}">${item.emoji}</div>`;
+            return `<div class="grid-item" data-emoji="${item.emoji}" title="${desc}">${item.emoji}</div>`;
         }).join('');
 
-        grid.innerHTML = htmlBuffer;
-        section.appendChild(grid);
-        container.appendChild(section);
+        grid.innerHTML = html;
+        container.appendChild(grid);
+        delete container.dataset.items; 
+    }
+
+    function renderCategoryNav() {
+        const nav = document.getElementById('categoryNav');
+        nav.innerHTML = '';
+        
+        const data = DATA_STORE[CURRENT_TAB];
+        if(!data) return;
+
+        // 현재 데이터에 존재하는 카테고리만 추출
+        const uniqueCats = [...new Set(data.map(i => i.category))];
+        
+        // 정렬
+        let sortedCats;
+        if (CURRENT_TAB === 'emoji') {
+            sortedCats = Object.keys(EMOJI_CATS).filter(c => uniqueCats.includes(c));
+        } else {
+            sortedCats = uniqueCats;
+        }
+
+        sortedCats.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn';
+            // 표시 이름 설정
+            btn.textContent = (CURRENT_TAB === 'emoji' && EMOJI_CATS[cat]) ? EMOJI_CATS[cat] : cat.split(' ')[0];
+            
+            btn.onclick = () => {
+                const targetId = 'sec-' + cat.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+                const target = document.getElementById(targetId);
+                if(target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+            };
+            nav.appendChild(btn);
+        });
     }
 
     function filterAndRender() {
         const term = state.searchTerm.toLowerCase();
         const mainContent = document.getElementById('mainContent');
-        
-        // 검색 시에는 즉시 반응성을 위해 로딩창 없이 바로 갱신
+        observer.disconnect();
         mainContent.innerHTML = '';
 
         if (!term) {
-            // 검색어 지우면 다시 전체 렌더링 (이때는 빠름)
-            renderAllEmojis(); 
+            prepareList();
             return;
         }
 
-        const filtered = ALL_EMOJIS.filter(item => {
+        const data = DATA_STORE[CURRENT_TAB];
+        const filtered = data.filter(item => {
             const desc = (item.description || '').toLowerCase();
             const tags = (item.tags || []).join(' ').toLowerCase();
             return desc.includes(term) || tags.includes(term) || item.emoji.includes(term);
@@ -359,14 +399,16 @@
             return;
         }
 
-        renderSection(mainContent, `검색 결과 (${filtered.length}개)`, filtered);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'emoji-section';
+        renderSectionContent(wrapper, `검색 결과 (${filtered.length}개)`, filtered);
+        mainContent.appendChild(wrapper);
     }
 
+    // --- 공통 기능 (즐겨찾기, 복사, 테마) ---
     function renderFavorites() {
         const container = document.getElementById('favoritesContainer');
-        while (container.children.length > 1) {
-            container.removeChild(container.lastChild);
-        }
+        while (container.children.length > 1) container.removeChild(container.lastChild);
         state.favorites.forEach(emoji => {
             const span = document.createElement('span');
             span.className = 'fav-item';
@@ -395,8 +437,7 @@
 
     function showToast(text) {
         const t = document.getElementById('toast');
-        const msg = document.getElementById('toastMessage');
-        msg.textContent = `"${text}" 복사됨`;
+        document.getElementById('toastMessage').textContent = `"${text}" 복사됨`;
         t.classList.add('show');
         if(t.timer) clearTimeout(t.timer);
         t.timer = setTimeout(() => t.classList.remove('show'), 1500);
@@ -411,31 +452,22 @@
         renderFavorites();
     }
 
-    function toggleMiniMode() {
-        state.isMiniMode = !state.isMiniMode;
-        if (state.isMiniMode) document.body.classList.add('mini-mode');
-        else document.body.classList.remove('mini-mode');
-    }
-
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        const icon = document.querySelector('#themeToggle i');
-        if(icon) icon.className = (theme === 'dark') ? 'fas fa-sun' : 'fas fa-moon';
-    }
-
     function setupEventListeners() {
-        document.getElementById('miniModeToggle').addEventListener('click', toggleMiniMode);
-        document.getElementById('exitMiniMode').addEventListener('click', toggleMiniMode);
+        document.getElementById('miniModeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('mini-mode');
+        });
+        document.getElementById('exitMiniMode').addEventListener('click', () => {
+            document.body.classList.remove('mini-mode');
+        });
         document.getElementById('themeToggle').addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
-            applyTheme(next);
+            document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('uni_theme', next);
         });
 
         let debounce;
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', (e) => {
+        document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(debounce);
             debounce = setTimeout(() => {
                 state.searchTerm = e.target.value;
