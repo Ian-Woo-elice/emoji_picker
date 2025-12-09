@@ -62,7 +62,6 @@
         }
         .icon-btn:hover { background-color: var(--hover-bg); }
 
-        /* [핵심] 탭 스타일 */
         .tabs-container {
             display: flex; gap: 8px; margin-bottom: 16px;
         }
@@ -118,7 +117,6 @@
         }
         .grid-item:hover { background-color: var(--hover-bg); }
 
-        /* 즐겨찾기 바 */
         .favorites-bar {
             display: flex; gap: 12px; overflow-x: auto; padding: 8px 0;
             margin-bottom: 10px; border-bottom: 1px solid var(--border-color);
@@ -139,9 +137,8 @@
         
         .loading-text { text-align: center; color: #9ca3af; padding: 20px; }
         
-        /* 미니 모드 */
         body.mini-mode .container { padding: 10px; max-width: 100%; }
-        body.mini-mode header, body.mini-mode .tabs-container { display: none; } /* 탭도 미니모드에선 숨김 */
+        body.mini-mode header, body.mini-mode .tabs-container { display: none; }
         body.mini-mode .mini-exit-btn { display: flex; }
         .mini-exit-btn {
             display: none; position: fixed; top: 10px; right: 10px; z-index: 100;
@@ -189,22 +186,23 @@
 
 <div id="toast" class="toast"><span id="toastMessage">복사 완료!</span></div>
 
+<script src="emoji_data.js"></script>
+<script src="special_symbols.js"></script>
+
 <script>
-    // 이모지 카테고리
     const EMOJI_CATS = {
         "Smileys & Emotion": "😀 표정", "People & Body": "👋 사람",
         "Animals & Nature": "🐶 자연", "Food & Drink": "🍔 음식",
         "Travel & Places": "✈️ 여행", "Activities": "⚽ 활동",
         "Objects": "💡 사물", "Symbols": "🔣 기호", "Flags": "🚩 깃발"
     };
-    // 특수문자 카테고리는 데이터에 포함된 이름 그대로 사용하거나 여기서 매핑 가능
 
     let DATA_STORE = {
         emoji: [],
         symbol: []
     };
 
-    let CURRENT_TAB = 'emoji'; // 'emoji' or 'symbol'
+    let CURRENT_TAB = 'emoji'; 
     
     const state = {
         searchTerm: '',
@@ -212,7 +210,6 @@
         isMiniMode: false
     };
 
-    // [성능] Intersection Observer
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -225,44 +222,45 @@
         });
     }, { rootMargin: "300px 0px" });
 
-    async function init() {
+    function init() {
         renderFavorites();
         setupEventListeners();
         
         const savedTheme = localStorage.getItem('uni_theme');
         if (savedTheme) applyTheme(savedTheme);
 
-        // [핵심] 두 개의 파일을 병렬 로딩
+        // [핵심 수정] fetch를 삭제하고 전역 변수에서 데이터를 가져옵니다.
         try {
-            const [emojiRes, symbolRes] = await Promise.allSettled([
-                fetch('emoji_data.json'),
-                fetch('special_symbols.json')
-            ]);
+            if (window.EMOJI_DATA) DATA_STORE.emoji = window.EMOJI_DATA;
+            if (window.SYMBOL_DATA) DATA_STORE.symbol = window.SYMBOL_DATA;
 
-            if (emojiRes.status === 'fulfilled') DATA_STORE.emoji = await emojiRes.value.json();
-            if (symbolRes.status === 'fulfilled') DATA_STORE.symbol = await symbolRes.value.json();
+            // 데이터가 없으면 에러 표시
+            if (!DATA_STORE.emoji.length && !DATA_STORE.symbol.length) {
+                throw new Error("데이터 파일(emoji_data.js, special_symbols.js)이 로드되지 않았습니다.");
+            }
 
-            // 로딩 완료 후 렌더링
             switchTab('emoji'); 
 
         } catch (error) {
             console.error("Data Load Error:", error);
-            document.getElementById('mainContent').innerHTML = "데이터 로딩 실패 (Live Server로 실행해주세요)";
+            document.getElementById('mainContent').innerHTML = 
+                '<div class="loading-text" style="color:red;">데이터 로딩 실패.<br>파일명이 .js 인지, 코드가 올바른지 확인해주세요.</div>';
         }
     }
 
-    // [핵심] 탭 전환 함수
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+
     function switchTab(tabName) {
         CURRENT_TAB = tabName;
         state.searchTerm = '';
         document.getElementById('searchInput').value = '';
 
-        // 버튼 스타일 업데이트
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         const btnIdx = tabName === 'emoji' ? 0 : 1;
         document.querySelectorAll('.tab-btn')[btnIdx].classList.add('active');
 
-        // 플레이스홀더 변경
         const placeholder = tabName === 'emoji' ? '이모지 검색 (예: 웃음, 사과...)' : '특수문자 검색 (예: 별, 화살표, 네모...)';
         document.getElementById('searchInput').placeholder = placeholder;
 
@@ -273,11 +271,11 @@
     function prepareList() {
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = '';
-        observer.disconnect(); // 기존 관찰 중단
+        observer.disconnect();
 
         const data = DATA_STORE[CURRENT_TAB];
         if (!data || data.length === 0) {
-            mainContent.innerHTML = '<div class="loading-text">데이터가 없거나 로딩 중입니다.</div>';
+            mainContent.innerHTML = '<div class="loading-text">데이터가 없습니다.</div>';
             return;
         }
 
@@ -288,7 +286,6 @@
             grouped[cat].push(item);
         });
 
-        // 카테고리 정렬: 이모지는 정의된 순서대로, 특수문자는 그냥 나오는 대로
         let categories;
         if (CURRENT_TAB === 'emoji') {
             categories = Object.keys(EMOJI_CATS).concat(
@@ -304,10 +301,9 @@
             const section = document.createElement('div');
             section.className = 'emoji-section';
             
-            // [수정 포인트 1] 한글 카테고리 ID가 지워지지 않도록 수정
+            // 한글 카테고리 이름 깨짐 방지
             section.id = 'sec-' + encodeURIComponent(key.replace(/\s+/g, '-'));
             
-            // 이모지 탭이면 한글명 매핑, 아니면 원래 카테고리명 사용
             const title = (CURRENT_TAB === 'emoji' && EMOJI_CATS[key]) ? EMOJI_CATS[key] : key;
             
             section.dataset.title = title;
@@ -336,8 +332,8 @@
 
         const html = items.map(item => {
             const desc = item.description || '';
-            const tagStr = item.tags ? item.tags.join(', ') : '';
-            return `<div class="grid-item" data-emoji="${item.emoji}" title="${desc}">${item.emoji}</div>`;
+            const safeEmoji = item.emoji.replace(/"/g, '&quot;');
+            return `<div class="grid-item" data-emoji="${safeEmoji}" title="${desc}">${item.emoji}</div>`;
         }).join('');
 
         grid.innerHTML = html;
@@ -352,10 +348,8 @@
         const data = DATA_STORE[CURRENT_TAB];
         if(!data) return;
 
-        // 현재 데이터에 존재하는 카테고리만 추출
         const uniqueCats = [...new Set(data.map(i => i.category))];
         
-        // 정렬
         let sortedCats;
         if (CURRENT_TAB === 'emoji') {
             sortedCats = Object.keys(EMOJI_CATS).filter(c => uniqueCats.includes(c));
@@ -366,11 +360,9 @@
         sortedCats.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'cat-btn';
-            // 표시 이름 설정
             btn.textContent = (CURRENT_TAB === 'emoji' && EMOJI_CATS[cat]) ? EMOJI_CATS[cat] : cat.split(' ')[0];
             
             btn.onclick = () => {
-                // [수정 포인트 2] 한글 카테고리 ID가 지워지지 않도록 수정
                 const targetId = 'sec-' + encodeURIComponent(cat.replace(/\s+/g, '-'));
                 const target = document.getElementById(targetId);
                 if(target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -408,7 +400,6 @@
         mainContent.appendChild(wrapper);
     }
 
-    // --- 공통 기능 (즐겨찾기, 복사, 테마) ---
     function renderFavorites() {
         const container = document.getElementById('favoritesContainer');
         while (container.children.length > 1) container.removeChild(container.lastChild);
